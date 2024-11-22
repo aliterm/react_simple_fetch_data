@@ -13,7 +13,7 @@ type Inputs = {
 }
 
 export default function Home() {
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [data, setData] = useState<ResponseData[] | undefined>()
 
   const handleClick = async () => {
@@ -31,22 +31,15 @@ export default function Home() {
     setLoading(false)
   }
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm<Inputs>()
-  const onSubmit: SubmitHandler<Inputs> = async (item) => {
-    if (item.search) {
+  const { register, handleSubmit } = useForm<Inputs>()
+  const onSubmit: SubmitHandler<Inputs> = async (input) => {
+    if (input.search) {
       setLoading(true)
       if (data) {
-        const filtered: any = data.map((d) => {
-          if (d.title.toLowerCase().includes(item.search.toLowerCase())) {
-            return d
-          }
-        })
-        setData(filtered)
+        const filteredResults = data.filter(
+          (item) => item.title.toLowerCase().includes(input.search) || item.body.toLowerCase().includes(input.search),
+        )
+        setData(filteredResults)
       }
 
       setLoading(false)
@@ -56,14 +49,20 @@ export default function Home() {
   return (
     <main className="flex min-h-screen justify-center items-center mb-10">
       <div className="w-8/12">
-        <button className="bg-blue-500 text-white font-bold py-2 px-4 rounded" onClick={handleClick}>
+        <form onSubmit={handleSubmit(onSubmit)} method="get" className="my-5  mx-auto">
+          <input
+            placeholder="Search..."
+            {...register('search')}
+            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          />
+          <button type="submit" className="bg-blue-500 text-white font-bold py-2 px-4 my-5 rounded">
+            Search
+          </button>
+        </form>
+
+        <button className="bg-blue-500 text-white font-bold py-2 px-4 my-5 rounded" onClick={handleClick}>
           Show Data
         </button>
-
-        <form onSubmit={handleSubmit(onSubmit)} method="get">
-          <input placeholder="Search..." {...register('search')} />
-          <button type="submit">Search</button>
-        </form>
 
         <ul>
           {loading && !data && <li>Loading...</li>}
@@ -72,6 +71,7 @@ export default function Home() {
             data.map((item, key) => (
               <li key={key}>
                 <a
+                  className="text-blue-500 cursor-pointer hover:text-blue-700"
                   href="#"
                   onClick={() => {
                     const element = document.getElementById(item.id.toString())
